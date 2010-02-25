@@ -1,0 +1,19 @@
+== LolitaOrderable
+
+Plugin for simple ordering through one order field
+
+
+=== Example
+
+1. Add order field, like "order_nr" as integer
+2. In model add line "acts_as_orderable" and if needed add :column => "order_field_name"
+3. In your controller config method add field
+  {:type=>:select,:field=>YOUR_ORDER_FIELD_NAME,:options=>YOUR_MODEL.options_for_orderable,:simple=>true}
+
+Also you can use the move_to function, for example
+   item = Item.find 1
+   item.move_to 3
+Item has moved to 3rd position
+
+
+Copyright (c) 2009 IT House, released under the MIT license
