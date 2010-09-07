@@ -34,13 +34,13 @@ module Lolita # :nodoc:
       # updates all unordered items puts them into the end of list
       def order_unordered
         self.reset_column_information # because before this usual 'add_column' is executed and the new column isn't fetched yet
-        unordered_conditions = ["#{self.orderable_column} IS NULL OR #{self.orderable_column} = 0"]
-        ordered_conditions   = ["#{self.orderable_column} IS NOT NULL AND #{self.orderable_column} != 0"]
+        unordered_conditions = ["#{self.orderable_column} IS NULL OR #{self.table_name}.#{self.orderable_column} = 0"]
+        ordered_conditions   = ["#{self.orderable_column} IS NOT NULL AND #{self.table_name}.#{self.orderable_column} != 0"]
         order_nr = self.count(:conditions => ordered_conditions)
         items = self.all(:conditions => unordered_conditions)
         items.each do |item|
           order_nr += 1
-          self.connection.execute("update #{self.table_name} set #{self.orderable_column} = '#{order_nr}' where id = #{item.id};")
+          self.connection.execute("update #{self.table_name} set #{self.orderable_column} = '#{order_nr}' where #{self.table_name}.id = #{item.id};")
         end
       end
     end
@@ -77,7 +77,7 @@ module Lolita # :nodoc:
         else
           self[self.class.orderable_column] = self.all_orderable.size + 1 if self[self.class.orderable_column] == 0
         end
-        all_orderable(["id != ?",self.id || 0]).each do |item|
+        all_orderable(["#{self.class.table_name}.id != ?",self.id || 0]).each do |item|
           item[self.class.orderable_column] = 0 if item[self.class.orderable_column].nil?
           if self.id
             if item[self.class.orderable_column] > (self.send("#{self.class.orderable_column}_was") || 0 )
@@ -91,12 +91,12 @@ module Lolita # :nodoc:
             end
             
             if item[self.class.orderable_column] != item.send("#{self.class.orderable_column}_was")
-              self.class.connection.execute("update #{self.class.table_name} set #{self.class.orderable_column} = '#{item[self.class.orderable_column]}' where id = #{item.id};")
+              self.class.connection.execute("update #{self.class.table_name} set #{self.class.orderable_column} = '#{item[self.class.orderable_column]}' where #{self.class.table_name}.id = #{item.id};")
             end
           else
             if item[self.class.orderable_column] >= self[self.class.orderable_column]
               item[self.class.orderable_column] += 1
-              self.class.connection.execute("update #{self.class.table_name} set #{self.class.orderable_column} = '#{item[self.class.orderable_column]}' where id = #{item.id};")
+              self.class.connection.execute("update #{self.class.table_name} set #{self.class.orderable_column} = '#{item[self.class.orderable_column]}' where #{self.class.table_name}.id = #{item.id};")
             end
           end
         end
@@ -106,7 +106,7 @@ module Lolita # :nodoc:
         all_orderable.each do |item|
           if item[self.class.orderable_column] > self[self.class.orderable_column]
             item[self.class.orderable_column] -= 1
-            self.class.connection.execute("update #{self.class.table_name} set #{self.class.orderable_column} = '#{item[self.class.orderable_column]}' where id = #{item.id};")
+            self.class.connection.execute("update #{self.class.table_name} set #{self.class.orderable_column} = '#{item[self.class.orderable_column]}' where #{self.class.table_name}.id = #{item.id};")
           end
         end
       end

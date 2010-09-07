@@ -1,7 +1,7 @@
 require 'rubygems'
-require 'spec'
-require 'active_support'
+gem 'rails', '<=2.3.9'
 require 'active_record'
+require 'spec'
 require File.dirname(__FILE__)+'/../init.rb'
 ActiveRecord::Base.logger = Logger.new(File.open("#{File.dirname(__FILE__)}/database.log", 'w+'))
 ActiveRecord::Base.establish_connection({ :database => ":memory:", :adapter => 'sqlite3', :timeout => 500 })
