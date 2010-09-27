@@ -26,18 +26,13 @@ module Lolita # :nodoc:
         end
       end
 
-      # returns options list for :options parameter in Managed config
-      def options_for_orderable
-        [["",0]] + (1..self.all.size).to_a.collect{|i| [i,i]}
-      end
-
       # updates all unordered items puts them into the end of list
       def order_unordered
         self.reset_column_information # because before this usual 'add_column' is executed and the new column isn't fetched yet
         unordered_conditions = ["#{self.orderable_column} IS NULL OR #{self.table_name}.#{self.orderable_column} = 0"]
         ordered_conditions   = ["#{self.orderable_column} IS NOT NULL AND #{self.table_name}.#{self.orderable_column} != 0"]
-        order_nr = self.count(:conditions => ordered_conditions)
-        items = self.all(:conditions => unordered_conditions)
+        order_nr = self.count(:conditions => orderable_conditions(ordered_conditions))
+        items = self.all(:conditions => ordered_conditions(unordered_conditions))
         items.each do |item|
           order_nr += 1
           self.connection.execute("update #{self.table_name} set #{self.orderable_column} = '#{order_nr}' where #{self.table_name}.id = #{item.id};")
@@ -46,6 +41,11 @@ module Lolita # :nodoc:
     end
 
     module InstanceMethods
+      # returns options list for :options parameter in Managed config
+      def options_for_orderable
+        [["",0]] + (1..self.class.count(:conditions => orderable_conditions)).to_a.collect{|i| [i,i]}
+      end
+      
       # Moves Item to given position, if second argument == false, then it's not saved
       def move_to nr, save = true
         self[self.class.orderable_column] = nr
@@ -55,6 +55,12 @@ module Lolita # :nodoc:
       # returns all orderable for current scope
       # :scope works as Rails :scope option
       def all_orderable conditions = {}
+        self.class.find(:all, :conditions => orderable_conditions(conditions))
+      end
+
+      private
+
+      def orderable_conditions conditions = {}
         scope_conditions = []
         if scope = self.class.orderable_scope
           condition_sql = []
@@ -66,10 +72,9 @@ module Lolita # :nodoc:
           end
           scope_conditions = [condition_sql.join(" AND "),*condition_params]
         end
-        self.class.find(:all, :conditions => self.class.merge_conditions(conditions,scope_conditions))
+        self.class.merge_conditions(conditions,scope_conditions)
       end
 
-      private
       def pre_save_ordering
         self[self.class.orderable_column] = 0 if self[self.class.orderable_column].nil?
         if self.id
