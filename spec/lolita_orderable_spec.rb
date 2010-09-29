@@ -64,4 +64,14 @@ describe Lolita::Orderable do
     Category.find_by_name("Cat 7").order_nr.should == 4
     Category.find_by_name("Cat 9").order_nr.should == 5
   end
+
+  it "should create unordered list and order it with order_unordered method" do
+    1.upto(4){|i| Category.create(:name => "Type #{i}")}
+    @cat = Category.create(:name => "Type 0")
+    Category.order_unordered
+    @cat.order_nr.should_not == 1
+    @cat.move_to 1
+    @cat.reload
+    @cat.order_nr.should == 1
+  end
 end

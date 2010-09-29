@@ -32,18 +32,33 @@ module Lolita # :nodoc:
         unordered_conditions = ["#{self.orderable_column} IS NULL OR #{self.table_name}.#{self.orderable_column} = 0"]
         ordered_conditions   = ["#{self.orderable_column} IS NOT NULL AND #{self.table_name}.#{self.orderable_column} != 0"]
         order_nr = self.count(:conditions => orderable_conditions(ordered_conditions))
-        items = self.all(:conditions => ordered_conditions(unordered_conditions))
+        items = self.all(:conditions => orderable_conditions(unordered_conditions))
         items.each do |item|
           order_nr += 1
           self.connection.execute("update #{self.table_name} set #{self.orderable_column} = '#{order_nr}' where #{self.table_name}.id = #{item.id};")
         end
+      end
+
+      def orderable_conditions conditions = {}, obj=nil
+        scope_conditions = []
+        if scope = self.orderable_scope
+          condition_sql = []
+          condition_params = []
+          Array(scope).map do |scope_item|
+            scope_value = obj ? obj.send(scope_item) : self.new.send(scope_item)
+            condition_sql <<  self.send(:attribute_condition,"#{self.quoted_table_name}.#{scope_item}",scope_value)
+            condition_params << scope_value
+          end
+          scope_conditions = [condition_sql.join(" AND "),*condition_params]
+        end
+        self.merge_conditions(conditions,scope_conditions)
       end
     end
 
     module InstanceMethods
       # returns options list for :options parameter in Managed config
       def options_for_orderable
-        [["",0]] + (1..self.class.count(:conditions => orderable_conditions)).to_a.collect{|i| [i,i]}
+        [["",0]] + (1..self.class.count(:conditions => self.class.orderable_conditions({},self))).to_a.collect{|i| [i,i]}
       end
       
       # Moves Item to given position, if second argument == false, then it's not saved
@@ -55,25 +70,10 @@ module Lolita # :nodoc:
       # returns all orderable for current scope
       # :scope works as Rails :scope option
       def all_orderable conditions = {}
-        self.class.find(:all, :conditions => orderable_conditions(conditions))
+        self.class.find(:all, :conditions => self.class.orderable_conditions(conditions, self))
       end
 
       private
-
-      def orderable_conditions conditions = {}
-        scope_conditions = []
-        if scope = self.class.orderable_scope
-          condition_sql = []
-          condition_params = []
-          Array(scope).map do |scope_item|
-            scope_value = self.send(scope_item)
-            condition_sql <<  self.class.send(:attribute_condition,"#{self.class.quoted_table_name}.#{scope_item}",scope_value)
-            condition_params << scope_value
-          end
-          scope_conditions = [condition_sql.join(" AND "),*condition_params]
-        end
-        self.class.merge_conditions(conditions,scope_conditions)
-      end
 
       def pre_save_ordering
         self[self.class.orderable_column] = 0 if self[self.class.orderable_column].nil?
