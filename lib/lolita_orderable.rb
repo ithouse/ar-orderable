@@ -58,7 +58,7 @@ module Lolita # :nodoc:
     module InstanceMethods
       # returns options list for :options parameter in Managed config
       def options_for_orderable
-        [["",0]] + (1..self.class.count(:conditions => self.class.orderable_conditions({},self))).to_a.collect{|i| [i,i]}
+        [["",0]] + (1..self.class.count(:conditions => self.class.orderable_conditions({:locale => self.locale ? self.locale : I18n.default_locale},self))).to_a.collect{|i| [i,i]}
       end
       
       # Moves Item to given position, if second argument == false, then it's not saved
