@@ -6,7 +6,7 @@ Plugin for simple ordering through one order field
 === Example
 
 1. Add order field, like "order_nr" as integer
-2. In model add line "acts_as_orderable" and if needed add :column => "order_field_name"
+2. In model add line "acts_as_orderable" and if needed add :column => "order_field_name" and if you use "lolita_localize" then add this line after "localize".
 3. In your controller config method add field
   {:type=>:select,:field=>YOUR_ORDER_FIELD_NAME,:options=>YOUR_MODEL.options_for_orderable,:simple=>true}
 4. If your model already has some values then use the 'order_unordered' after adding new column:

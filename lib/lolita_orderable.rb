@@ -13,7 +13,7 @@ module Lolita # :nodoc:
       def acts_as_orderable options = {}
         @orderable_column = options[:column] ? options[:column].to_s : "order_nr"
         if self.columns_hash.keys.include? @orderable_column
-          @orderable_scope  = options[:scope]
+          @orderable_scope  = options[:scope] || (self.respond_to?(:custom_columns_to_localize))? [:locale] : nil
           self.before_save :pre_save_ordering
           self.before_destroy :pre_destroy_ordering
           self.default_scope :order => @orderable_column
