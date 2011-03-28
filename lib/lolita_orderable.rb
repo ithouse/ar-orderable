@@ -29,13 +29,15 @@ module Lolita # :nodoc:
       # updates all unordered items puts them into the end of list
       def order_unordered
         self.reset_column_information # because before this usual 'add_column' is executed and the new column isn't fetched yet
-        unordered_conditions = ["#{self.orderable_column} IS NULL OR #{self.table_name}.#{self.orderable_column} = 0"]
-        ordered_conditions   = ["#{self.orderable_column} IS NOT NULL AND #{self.table_name}.#{self.orderable_column} != 0"]
-        order_nr = self.count(:conditions => orderable_conditions(ordered_conditions))
-        items = self.all(:conditions => orderable_conditions(unordered_conditions))
-        items.each do |item|
-          order_nr += 1
-          self.connection.execute("update #{self.table_name} set #{self.orderable_column} = '#{order_nr}' where #{self.table_name}.id = #{item.id};")
+        self.find(:all, :group => self.orderable_scope).each do |obj|
+          unordered_conditions = ["#{self.orderable_column} IS NULL OR #{self.table_name}.#{self.orderable_column} = 0"]
+          ordered_conditions   = ["#{self.orderable_column} IS NOT NULL AND #{self.table_name}.#{self.orderable_column} != 0"]
+          order_nr = self.count(:conditions => orderable_conditions(ordered_conditions,obj))
+          items = self.all(:conditions => orderable_conditions(unordered_conditions,obj))
+          items.each do |item|
+            order_nr += 1
+            self.connection.execute("update #{self.table_name} set #{self.orderable_column} = '#{order_nr}' where #{self.table_name}.id = #{item.id};")
+          end
         end
       end
 
