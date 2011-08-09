@@ -1,2 +1,2 @@
-require 'lolita_orderable'
-ActiveRecord::Base.send(:include, Lolita::Orderable)
+require 'ar_orderable'
+ActiveRecord::Base.send(:include, ActiveRecord::Orderable)

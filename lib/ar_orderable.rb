@@ -1,4 +1,4 @@
-module Lolita # :nodoc:
+module ActiveRecord # :nodoc:
   module Orderable # :nodoc:
     def self.included(base) # :nodoc:
       base.extend(ClassMethods)
@@ -18,9 +18,9 @@ module Lolita # :nodoc:
           self.before_destroy :pre_destroy_ordering
           self.default_scope :order => @orderable_column
           #self.validates_uniqueness_of @orderable_column, :scope => @orderable_scope
-          include Lolita::Orderable::InstanceMethods
+          include ActiveRecord::Orderable::InstanceMethods
         else
-          msg = "[IMPORTANT] Lolita Orderable plugin: class #{self} has missing column '#{@orderable_column}'"
+          msg = "[IMPORTANT] ActiveRecord::Orderable plugin: class #{self} has missing column '#{@orderable_column}'"
           puts msg if Rails.env == "development"
           RAILS_DEFAULT_LOGGER.error msg
         end
@@ -29,50 +29,39 @@ module Lolita # :nodoc:
       # updates all unordered items puts them into the end of list
       def order_unordered
         self.reset_column_information # because before this usual 'add_column' is executed and the new column isn't fetched yet
-        self.find(:all, :group => self.orderable_scope).each do |obj|
-          unordered_conditions = ["#{self.orderable_column} IS NULL OR #{self.table_name}.#{self.orderable_column} = 0"]
-          ordered_conditions   = ["#{self.orderable_column} IS NOT NULL AND #{self.table_name}.#{self.orderable_column} != 0"]
-          order_nr = self.count(:conditions => orderable_conditions(ordered_conditions,obj))
-          items = self.all(:conditions => orderable_conditions(unordered_conditions,obj))
-          items.each do |item|
+        self.group(self.orderable_scope).each do |obj|
+          unordered_conditions = "#{self.orderable_column} IS NULL OR #{self.table_name}.#{self.orderable_column} = 0"
+          ordered_conditions   = "#{self.orderable_column} IS NOT NULL AND #{self.table_name}.#{self.orderable_column} != 0"
+          order_nr = obj.all_orderable.order(@orderable_column).last[@orderable_column] || 0
+          obj.all_orderable.where(unordered_conditions).each do |item|
             order_nr += 1
             self.connection.execute("update #{self.table_name} set #{self.orderable_column} = '#{order_nr}' where #{self.table_name}.id = #{item.id};")
           end
         end
       end
-
-      def orderable_conditions conditions = {}, obj=nil
-        scope_conditions = []
-        if scope = self.orderable_scope
-          condition_sql = []
-          condition_params = []
-          Array(scope).map do |scope_item|
-            scope_value = obj ? obj.send(scope_item) : self.new.send(scope_item)
-            condition_sql <<  self.send(:attribute_condition,"#{self.quoted_table_name}.#{scope_item}",scope_value)
-            condition_params << scope_value
-          end
-          scope_conditions = [condition_sql.join(" AND "),*condition_params]
-        end
-        self.merge_conditions(conditions,scope_conditions)
-      end
     end
 
     module InstanceMethods
-      # returns options list for :options parameter in Managed config
-      def options_for_orderable
-        [["",0]] + (1..self.class.count(:conditions => self.class.orderable_conditions({:locale => self.locale ? self.locale : I18n.default_locale},self))).to_a.collect{|i| [i,i]}
-      end
       
-      # Moves Item to given position, if second argument == false, then it's not saved
-      def move_to nr, save = true
-        self[self.class.orderable_column] = nr
-        self.save! if save
+      # Moves Item to given position
+      def move_to nr
+        self.update_attribute(self.class.orderable_column, nr)
       end
 
-      # returns all orderable for current scope
-      # :scope works as Rails :scope option
-      def all_orderable conditions = {}
-        self.class.find(:all, :conditions => self.class.orderable_conditions(conditions, self))
+      def move_up
+        move_to(self[self.class.orderable_column] - 1) if self[self.class.orderable_column]
+      end
+
+      def move_down
+        move_to(self[self.class.orderable_column] + 1) if self[self.class.orderable_column]
+      end
+
+      def all_orderable
+        if self.class.orderable_scope
+          self.class.where(:"#{self.class.orderable_scope}" => self[self.class.orderable_scope])
+        else
+          self.class.where
+        end
       end
 
       private
@@ -80,11 +69,16 @@ module Lolita # :nodoc:
       def pre_save_ordering
         self[self.class.orderable_column] = 0 if self[self.class.orderable_column].nil?
         if self.id
-          self[self.class.orderable_column] = 1 if self[self.class.orderable_column] == 0
+          if self[self.class.orderable_column] == 0
+            self[self.class.orderable_column] = 1
+          end
+          if self[self.class.orderable_column] > self.all_orderable.count
+            self[self.class.orderable_column] = self[self.class.orderable_column] -1
+          end
         else
-          self[self.class.orderable_column] = self.all_orderable.size + 1 if self[self.class.orderable_column] == 0
+          self[self.class.orderable_column] = self.all_orderable.count + 1 if self[self.class.orderable_column] == 0
         end
-        all_orderable(["#{self.class.table_name}.id != ?",self.id || 0]).each do |item|
+        self.all_orderable.where(["#{self.class.table_name}.id != ?",self.id || 0]).each do |item|
           item[self.class.orderable_column] = 0 if item[self.class.orderable_column].nil?
           if self.id
             if item[self.class.orderable_column] > (self.send("#{self.class.orderable_column}_was") || 0 )
@@ -110,7 +104,7 @@ module Lolita # :nodoc:
       end
 
       def pre_destroy_ordering
-        all_orderable.each do |item|
+        self.all_orderable.each do |item|
           if item[self.class.orderable_column] > self[self.class.orderable_column]
             item[self.class.orderable_column] -= 1
             self.class.connection.execute("update #{self.class.table_name} set #{self.class.orderable_column} = '#{item[self.class.orderable_column]}' where #{self.class.table_name}.id = #{item.id};")
