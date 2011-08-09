@@ -15,11 +15,12 @@ Example migration:
     Category.order_unordered # remove this for new table
     add_index :categories, :order_nr
 
-To reorder items use the `move_to` method, for example:
+To reorder items use the `move_to(<integer>)`, `move_up` and `move_down` methods, for example:
 
     item = Item.find 1
-    item.move_to 3
-    # Item has moved to 3rd position
+    item.move_to 3 # moved to 3rd position
+    item.move_up # moved to 2rd position
+    item.move_down # moved to 3d position
 
 ### Tests
 
