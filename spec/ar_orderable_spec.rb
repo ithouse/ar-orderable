@@ -101,6 +101,7 @@ describe ActiveRecord::Orderable do
     c.reload
     c.order_nr.should == 1
   end
+
   it "should move_down" do
     5.times{|i| Category.create(:name => "Cat #{i+1}")}
     c = Category.find_by_name("Cat 2")
@@ -114,5 +115,16 @@ describe ActiveRecord::Orderable do
     c.move_down
     c.reload
     c.order_nr.should == 5
+  end
+
+  it "should skip_callbacks" do
+    5.times{|i| Category.create(:name => "Cat #{i+1}")}
+    c = Category.find_by_name("Cat 2")
+    c.background_task.should be_nil
+    c.move_down
+    c.background_task.should == :done
+    c.background_task = nil
+    c.move_up(:skip_callbacks => true)
+    c.background_task.should be_nil
   end
 end

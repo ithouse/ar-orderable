@@ -26,6 +26,14 @@ end
 class Category < ActiveRecord::Base
   belongs_to :cat_type
   acts_as_orderable :scope => :cat_type_id
+  after_save :do_background_task
+  attr_accessor :background_task
+
+  private
+
+  def do_background_task
+    self.background_task = :done
+  end
 end
 
 RSpec.configure do |config|
