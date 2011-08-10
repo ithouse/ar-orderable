@@ -2,6 +2,13 @@
 
 Rails 3 plugin for simple ordering.
 
+### Install
+
+Insert into your `Gemfile`:
+
+    gem 'ar-orderable'
+    
+then `bundle install`
 
 ### Setup
 
