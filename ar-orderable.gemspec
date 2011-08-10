@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{ar-orderable}
-  s.version = ""
+  s.version = "1.0.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Gatis Tomsons", "IT House"]
@@ -25,6 +25,7 @@ Gem::Specification.new do |s|
     "MIT-LICENSE",
     "README.md",
     "Rakefile",
+    "VERSION",
     "ar-orderable.gemspec",
     "init.rb",
     "lib/ar-orderable.rb",
