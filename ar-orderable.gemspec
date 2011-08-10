@@ -25,9 +25,13 @@ Gem::Specification.new do |s|
     "MIT-LICENSE",
     "README.md",
     "Rakefile",
+    "ar-orderable.gemspec",
     "init.rb",
     "lib/ar-orderable.rb",
+    "lib/ar_orderable.rb",
     "spec/ar-orderable_spec.rb",
+    "spec/ar_orderable_spec.rb",
+    "spec/spec.opts",
     "spec/spec_helper.rb"
   ]
   s.homepage = %q{http://github.com/ithouse/ar-orderable}
