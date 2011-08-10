@@ -1,3 +1,4 @@
+$:<<File.dirname(__FILE__) unless $:.include?(File.dirname(__FILE__))
 module ActiveRecord # :nodoc:
   module Orderable # :nodoc:
     def self.included(base) # :nodoc:
@@ -124,3 +125,5 @@ module ActiveRecord # :nodoc:
     end
   end
 end
+
+ActiveRecord::Base.class_eval { include ActiveRecord::Orderable }

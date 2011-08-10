@@ -13,7 +13,6 @@ Gem::Specification.new do |s|
   s.description = %q{You can order AR records and skip callbacks}
   s.email = %q{gatis@ithouse.cc}
   s.extra_rdoc_files = [
-    "LICENSE.txt",
     "README.md"
   ]
   s.files = [
@@ -21,15 +20,12 @@ Gem::Specification.new do |s|
     ".rspec",
     "Gemfile",
     "Gemfile.lock",
-    "LICENSE.txt",
     "MIT-LICENSE",
     "README.md",
     "Rakefile",
     "VERSION",
     "ar-orderable.gemspec",
-    "init.rb",
     "lib/ar-orderable.rb",
-    "lib/ar_orderable.rb",
     "spec/ar-orderable_spec.rb",
     "spec/ar_orderable_spec.rb",
     "spec/spec.opts",
