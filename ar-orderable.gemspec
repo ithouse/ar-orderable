@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{ar-orderable}
-  s.version = "1.0.2"
+  s.version = "1.0.3"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = ["Gatis Tomsons", "IT House"]
-  s.date = %q{2011-08-10}
+  s.authors = [%q{Gatis Tomsons}, %q{IT House}]
+  s.date = %q{2011-11-08}
   s.description = %q{You can order AR records and skip callbacks}
   s.email = %q{gatis@ithouse.cc}
   s.extra_rdoc_files = [
@@ -31,9 +31,9 @@ Gem::Specification.new do |s|
     "spec/spec_helper.rb"
   ]
   s.homepage = %q{http://github.com/ithouse/ar-orderable}
-  s.licenses = ["MIT"]
-  s.require_paths = ["lib"]
-  s.rubygems_version = %q{1.6.2}
+  s.licenses = [%q{MIT}]
+  s.require_paths = [%q{lib}]
+  s.rubygems_version = %q{1.8.8}
   s.summary = %q{Rails 3 plugin for simple ordering.}
 
   if s.respond_to? :specification_version then
