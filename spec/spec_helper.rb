@@ -36,12 +36,20 @@ class Category < ActiveRecord::Base
   belongs_to :cat_type
   acts_as_orderable :scope => :cat_type_id
   after_save :do_background_task
-  attr_accessor :background_task
+  after_save :resave_record
+  attr_accessor :background_task, :must_resave
 
   private
 
   def do_background_task
     self.background_task = :done
+  end
+  
+  def resave_record
+    if @must_resave
+      @must_resave = false
+      self.save!
+    end
   end
 end
 

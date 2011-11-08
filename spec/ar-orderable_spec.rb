@@ -127,4 +127,15 @@ describe ActiveRecord::Orderable do
     c.move_up(:skip_callbacks => true)
     c.background_task.should be_nil
   end
+  
+  it "should not reorder elements after repeated save" do
+    5.times{|i| Category.create(:name => "Cat #{i+1}")}
+    Category.first.order_nr.should == 1
+    Category.last.order_nr.should == 5
+    c = Category.new(:name => "Cat new")
+    c.must_resave = true
+    c.save
+    Category.first.order_nr.should == 1
+    Category.last.order_nr.should == 6
+  end
 end
