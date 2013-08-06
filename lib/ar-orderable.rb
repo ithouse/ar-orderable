@@ -1,7 +1,6 @@
-$:<<File.dirname(__FILE__) unless $:.include?(File.dirname(__FILE__))
-module ActiveRecord # :nodoc:
-  module Orderable # :nodoc:
-    def self.included(base) # :nodoc:
+module ActiveRecord
+  module Orderable
+    def self.included(base)
       base.extend(ClassMethods)
     end
 
@@ -11,13 +10,14 @@ module ActiveRecord # :nodoc:
       # @:column [string] column name
       # acts_as_orderable :column => "order_nr"
       def acts_as_orderable options = {}
+        return unless self.connection.table_exists?(self.table_name)
         self.orderable_column = (options[:column] || "order_nr").to_s
         self.skip_callbacks_for_orderable = options[:skip_callbacks]
         if self.columns_hash.keys.include? self.orderable_column
           self.orderable_scope  = options[:scope]
           self.before_save :pre_save_ordering
           self.before_destroy :pre_destroy_ordering
-          self.default_scope :order => self.orderable_column
+          self.default_scope { order(self.orderable_column) }
           #self.validates_uniqueness_of self.orderable_column, :scope => @orderable_scope
           include ActiveRecord::Orderable::InstanceMethods
         else

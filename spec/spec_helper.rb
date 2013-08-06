@@ -1,19 +1,16 @@
 require 'rubygems'
 require 'bundler'
-begin
-  Bundler.setup(:default, :development)
-rescue Bundler::BundlerError => e
-  $stderr.puts e.message
-  $stderr.puts "Run `bundle install` to install missing gems"
-  exit e.status_code
-end
+Bundler.setup(:default, :test)
 
+require 'simplecov'
+SimpleCov.start
 require 'rails'
 require 'active_record'
 require 'rspec'
 require 'logger'
-require 'ruby-debug'
+require 'byebug'
 require 'ar-orderable'
+
 ActiveRecord::Base.logger = Logger.new(File.open("#{File.dirname(__FILE__)}/database.log", 'w+'))
 ActiveRecord::Base.establish_connection({ :database => ":memory:", :adapter => 'sqlite3', :timeout => 500 })
 
