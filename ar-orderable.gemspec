@@ -8,10 +8,9 @@ Gem::Specification.new do |s|
   s.authors     = ["ITHouse (Latvia)", "Gatis Tomsons"]
   s.email       = "support@ithouse.lv"
   s.homepage    = "http://github.com/ithouse/ar-orderable"
-  s.description = %q{You can order AR records and skip callbacks}
+  s.summary = %q{You can order AR records and skip callbacks}
 
   s.extra_rdoc_files = [
-    "MIT-LICENCE",
     "README.md"
   ]
   s.licenses = ["MIT"]
