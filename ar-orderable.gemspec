@@ -3,7 +3,7 @@ $:.push File.expand_path("../lib", __FILE__)
 
 Gem::Specification.new do |s|
   s.name        = "ar-orderable"
-  s.version     = '1.0.4'
+  s.version     = '1.0.5'
   s.platform    = Gem::Platform::RUBY
   s.authors     = ["ITHouse (Latvia)", "Gatis Tomsons"]
   s.email       = "support@ithouse.lv"

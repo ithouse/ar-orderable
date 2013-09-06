@@ -22,8 +22,13 @@ module ActiveRecord
           include ActiveRecord::Orderable::InstanceMethods
         else
           msg = "[IMPORTANT] ActiveRecord::Orderable plugin: class #{self} has missing column '#{self.orderable_column}'"
-          puts msg if Rails.env == "development"
-          RAILS_DEFAULT_LOGGER.error msg
+          if defined?(RAILS_DEFAULT_LOGGER)
+            RAILS_DEFAULT_LOGGER.error msg
+          elsif defined?(Rails.logger)
+            Rails.logger.error msg
+          elsif Rails.env == "development"
+            puts msg
+          end
         end
       end
 
@@ -47,7 +52,7 @@ module ActiveRecord
     end
 
     module InstanceMethods
-      
+
       # Moves Item to given position
       def move_to nr, options = {}
         if options[:skip_callbacks].nil? ? self.class.skip_callbacks_for_orderable : options[:skip_callbacks]
@@ -79,7 +84,6 @@ module ActiveRecord
 
       def pre_save_ordering
         column_name = self.class.orderable_column
-        
         self[column_name] = 0 if self[column_name].nil?
         if self.id
           if self[column_name] == 0
@@ -91,7 +95,7 @@ module ActiveRecord
         else
           self[column_name] = self.all_orderable.count + 1 if self[column_name].to_i == 0
         end
-        
+
         return unless self.all_orderable.where("id != ? and #{column_name} = ?", self.id, self[column_name]).count > 0
         self.all_orderable.where("#{self.class.table_name}.id != ?",self.id || 0).each do |item|
           item[column_name] = 0 if item[column_name].nil?
@@ -105,7 +109,7 @@ module ActiveRecord
                 item[column_name] += 1
               end
             end
-            
+
             if item[column_name] != item.send("#{column_name}_was")
               self.class.raw_orderable_update(item.id, item[column_name])
             end
