@@ -8,17 +8,18 @@ module ActiveRecord
       attr_accessor :orderable_scope, :orderable_column, :skip_callbacks_for_orderable
 
       # @:column [string] column name
+      # @:scope [string] column name to scope by
+      # @:scope Array[string] column names to scope by
       # acts_as_orderable :column => "order_nr"
       def acts_as_orderable options = {}
         return unless self.connection.table_exists?(self.table_name)
         self.orderable_column = (options[:column] || "order_nr").to_s
         self.skip_callbacks_for_orderable = options[:skip_callbacks]
         if self.columns_hash.keys.include? self.orderable_column
-          self.orderable_scope  = options[:scope]
+          self.orderable_scope = Array(options[:scope])
           self.before_save :pre_save_ordering
           self.before_destroy :pre_destroy_ordering
           self.default_scope { order(self.orderable_column) }
-          #self.validates_uniqueness_of self.orderable_column, :scope => @orderable_scope
           include ActiveRecord::Orderable::InstanceMethods
         else
           msg = "[IMPORTANT] ActiveRecord::Orderable plugin: class #{self} has missing column '#{self.orderable_column}'"
@@ -34,12 +35,12 @@ module ActiveRecord
 
       # updates all unordered items puts them into the end of list
       def order_unordered
-        self.reset_column_information # because before this usual 'add_column' is executed and the new column isn't fetched yet
+        self.reset_column_information
         self.group(self.orderable_scope).each do |obj|
           unordered_conditions = "#{self.orderable_column} IS NULL OR #{self.table_name}.#{self.orderable_column} = 0"
           ordered_conditions   = "#{self.orderable_column} IS NOT NULL AND #{self.table_name}.#{self.orderable_column} != 0"
           order_nr = obj.all_orderable.order(self.orderable_column).last[self.orderable_column] || 0
-          obj.all_orderable.where(unordered_conditions).each do |item|
+          obj.all_orderable.where(unordered_conditions).find_each do |item|
             order_nr += 1
             raw_orderable_update(item.id, order_nr)
           end
@@ -72,9 +73,14 @@ module ActiveRecord
         move_to(self[self.class.orderable_column] + 1, options) if self[self.class.orderable_column]
       end
 
+      # returns all elements in current scope
       def all_orderable
-        if self.class.orderable_scope
-          self.class.where(:"#{self.class.orderable_scope}" => self[self.class.orderable_scope])
+        if self.class.orderable_scope.any?
+          scope = self.class.orderable_scope.inject({}) do |where, scope_name|
+            where[scope_name] = self[scope_name]
+            where
+          end
+          self.class.where(scope)
         else
           self.class.scoped
         end
@@ -97,7 +103,7 @@ module ActiveRecord
         end
 
         return unless self.all_orderable.where("id != ? and #{column_name} = ?", self.id, self[column_name]).count > 0
-        self.all_orderable.where("#{self.class.table_name}.id != ?",self.id || 0).each do |item|
+        self.all_orderable.where("#{self.class.table_name}.id != ?",self.id || 0).find_each do |item|
           item[column_name] = 0 if item[column_name].nil?
           if self.id
             if item[column_name] > (self.send("#{column_name}_was") || 0 )
