@@ -3,7 +3,7 @@ $:.push File.expand_path("../lib", __FILE__)
 
 Gem::Specification.new do |s|
   s.name        = "ar-orderable"
-  s.version     = '1.0.6'
+  s.version     = '1.0.7'
   s.platform    = Gem::Platform::RUBY
   s.authors     = ["ITHouse (Latvia)", "Gatis Tomsons"]
   s.email       = "support@ithouse.lv"
@@ -15,7 +15,7 @@ Gem::Specification.new do |s|
   ]
   s.licenses = ["MIT"]
 
-  s.add_runtime_dependency(%q<activerecord>, [">= 3.0", "< 4.0"])
+  s.add_runtime_dependency(%q<activerecord>, ">= 3.0")
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
   s.require_paths = ["lib"]
