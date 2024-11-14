@@ -82,7 +82,7 @@ module ActiveRecord
           end
           self.class.where(scope)
         else
-          self.class.scoped
+          self.class.unscoped
         end
       end
 
