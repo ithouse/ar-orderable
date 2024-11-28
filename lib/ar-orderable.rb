@@ -12,7 +12,7 @@ module ActiveRecord
       # @:scope Array[string] column names to scope by
       # acts_as_orderable :column => "order_nr"
       def acts_as_orderable options = {}
-        return unless self.connection.table_exists?(self.table_name)
+        return unless self.connection.data_source_exists?(self.table_name)
         self.orderable_column = (options[:column] || "order_nr").to_s
         self.skip_callbacks_for_orderable = options[:skip_callbacks]
         if self.columns_hash.keys.include? self.orderable_column
@@ -82,7 +82,7 @@ module ActiveRecord
           end
           self.class.where(scope)
         else
-          self.class.unscoped
+          self.class.all
         end
       end
 
