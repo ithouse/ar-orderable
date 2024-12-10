@@ -19,7 +19,7 @@ module ActiveRecord
           self.orderable_scope = Array(options[:scope])
           self.before_save :pre_save_ordering
           self.before_destroy :pre_destroy_ordering
-          self.default_scope { order(self.orderable_column) }
+          # self.default_scope { order(self.orderable_column) }
           include ActiveRecord::Orderable::InstanceMethods
         else
           msg = "[IMPORTANT] ActiveRecord::Orderable plugin: class #{self} has missing column '#{self.orderable_column}'"
